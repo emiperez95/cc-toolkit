@@ -47,6 +47,15 @@ const config = { ... }
    - Is the abstraction used more than once?
    - Does it actually simplify?
 
+## Diff Format
+
+The diff includes explicit line numbers for accuracy:
+- `  42:  code` - unchanged context line at line 42
+- `  43:+ code` - added line at line 43 (new code to review)
+- `  44:- code` - removed line (was at line 44 in old file)
+
+Use these line numbers directly in your findings.
+
 ## Output Format
 
 For each finding:

@@ -7,6 +7,7 @@ set -e
 PR_NUM="${1:?Usage: gather-context.sh <PR_NUMBER> [JIRA_TICKET]}"
 JIRA_TICKET="${2:-}"
 WORK_DIR="/tmp/athena-review-${PR_NUM}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Create work directory
 mkdir -p "${WORK_DIR}/reviews"
@@ -35,8 +36,8 @@ echo "---"
 # Phase 2: Run everything else in parallel
 echo "Gathering context in parallel..."
 {
-    # PR diff
-    gh pr diff "$PR_NUM" > "${WORK_DIR}/diff.patch" 2>/dev/null &
+    # PR diff with annotated line numbers
+    gh pr diff "$PR_NUM" 2>/dev/null | "${SCRIPT_DIR}/annotate-diff.sh" > "${WORK_DIR}/diff.patch" &
     DIFF_PID=$!
 
     # CLAUDE.md project guidelines (find all in repo)

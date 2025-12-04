@@ -34,6 +34,15 @@ try { ... } catch (e) { return null }
    - Network calls, file I/O, parsing
    - Are they wrapped in error handling?
 
+## Diff Format
+
+The diff includes explicit line numbers for accuracy:
+- `  42:  code` - unchanged context line at line 42
+- `  43:+ code` - added line at line 43 (new code to review)
+- `  44:- code` - removed line (was at line 44 in old file)
+
+Use these line numbers directly in your findings.
+
 ## Output Format
 
 For each finding:
