@@ -41,6 +41,12 @@ Or install individual plugins:
 | **athena-pr-reviewer** | Multi-LLM PR reviewer with 8 parallel reviewers (requires Gemini and Codex CLI) |
 | **athena-pr-reviewer-lite** | Claude-only PR reviewer with 6 specialized reviewers (no external dependencies) |
 
+**Athena Features:**
+- 6 specialized Claude reviewers (comments, tests, errors, types, general, simplifier)
+- Annotated diff with explicit line numbers for accurate references
+- Verification step to filter hallucinated findings
+- Consensus boosting for issues flagged by multiple reviewers
+
 ## Requirements
 
 - **GitHub CLI** (`gh`): Required for PR-related agents
