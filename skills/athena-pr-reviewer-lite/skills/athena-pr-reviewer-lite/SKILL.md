@@ -103,6 +103,22 @@ Read all 6 review files and combine findings:
 
 Deduplicate similar findings, noting which reviewer(s) flagged each and average confidence.
 
+### 4.5 Verify Findings
+
+For each aggregated finding, verify against actual code to filter hallucinations:
+
+1. Read `${WORK_DIR}/diff.patch` to get the actual code
+2. For each finding with file:line reference:
+   - Extract the actual code at that location from the diff
+   - Compare the finding's description to what the code actually does
+3. Use the verifier prompt (`~/.claude/skills/athena-pr-reviewer-lite/prompts/verifier.md`) to validate each finding
+4. Filter based on verdict:
+   - **✓ VERIFIED** → Keep in final output
+   - **✗ REJECTED** → Write to `${WORK_DIR}/rejected.md` with reason
+   - **⚠️ PARTIAL** → Keep but move to "Suggestions" section
+
+Output verified findings to `${WORK_DIR}/verified-findings.md`
+
 ### 5. Synthesize Actionable Items
 
 Present combined review to user:
@@ -114,20 +130,23 @@ Present combined review to user:
 | Requirement | Status | Notes |
 |-------------|--------|-------|
 
-## Action Items
+## Action Items (Verified)
 
-### Critical (consensus)
-- [ ] file:line - issue - fix [Claude-errors + Claude-tests + Claude-types] (3+, avg 92%)
+### Critical (consensus, verified)
+- [ ] file:line - issue - fix [Claude-errors + Claude-tests + Claude-types] (3+, avg 92%) ✓
 
-### High Priority
-- [ ] file:line - issue - fix [Claude-errors + Claude-tests] <- boosted (2, avg 85%)
-- [ ] file:line - issue - fix [Claude-types] (95%)
+### High Priority (verified)
+- [ ] file:line - issue - fix [Claude-errors + Claude-tests] <- boosted (2, avg 85%) ✓
+- [ ] file:line - issue - fix [Claude-types] (95%) ✓
 
-### Medium Priority
-- [ ] file:line - issue - fix [Claude-simplify] (88%)
+### Medium Priority (verified)
+- [ ] file:line - issue - fix [Claude-simplify] (88%) ✓
 
 ### Suggestions
-- improvements
+- improvements (including PARTIAL findings downgraded from higher severity)
+
+## Rejected Findings
+Findings that failed verification are saved to: `${WORK_DIR}/rejected.md`
 
 ## Review Sources
 - Claude Comments: ${WORK_DIR}/reviews/claude-comments.md
@@ -147,7 +166,8 @@ Present combined review to user:
 - Gather context via script (parallel CLI calls)
 - Run 6 Claude specialist reviews in parallel
 - Aggregate findings, boost items flagged by 2+ reviewers
-- Present actionable summary
+- Verify findings against actual diff (filter hallucinations)
+- Present verified actionable summary
 
 **User:** "Review CSD-123"
 - Find PR linked to CSD-123
