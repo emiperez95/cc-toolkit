@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/approve-athena.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

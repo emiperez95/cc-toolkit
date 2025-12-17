@@ -43,9 +43,26 @@ Or install individual plugins:
 **Athena Features:**
 - 6 specialized Claude reviewers (comments, tests, errors, types, general, simplifier)
 - Optional Gemini and Codex reviewers (auto-detected, gracefully skipped if not installed)
+- Dynamic reviewer selection UI - choose which reviewers to run
 - Annotated diff with explicit line numbers for accurate references
 - Verification step to filter hallucinated findings
 - Consensus boosting for issues flagged by multiple reviewers
+
+**Athena Auto-Approved Permissions:**
+
+This plugin includes a `PermissionRequest` hook that auto-approves specific operations to reduce permission prompts. You will still be asked to confirm:
+1. Skill invocation ("Use skill athena-pr-reviewer?")
+2. Reviewer selection (which reviewers to run)
+
+The following are auto-approved with strict pattern matching:
+
+| Operation | Pattern | Security |
+|-----------|---------|----------|
+| Bash scripts | Exact paths: `~/.claude/skills/athena-pr-reviewer/scripts/*.sh` | Only skill's own scripts |
+| Review outputs | Regex: `/tmp/athena-review-[0-9]+/reviews/[a-z][a-z0-9-]*.md` | Only PR work directory |
+| Work files | Exact: `context.md`, `diff.patch`, `verified-findings.md`, `rejected.md` | Limited file set |
+
+To disable auto-approval, remove the `hooks/` directory from the plugin.
 
 ## Requirements
 
