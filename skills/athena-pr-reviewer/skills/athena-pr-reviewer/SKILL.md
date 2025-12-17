@@ -40,74 +40,127 @@ Output files:
 - `blame.md` - Git blame for changed files (who wrote what, when)
 - `prior-comments.md` - Comments from past PRs touching same files
 
-### 3. Run Reviews (All 8 in Parallel)
+### 3. Detect and Select Reviewers
 
-Execute all 8 reviews simultaneously in a SINGLE message:
+Before running reviews, detect available reviewer agents and let the user select which to use.
 
-**In ONE message, run:**
+#### 3.1 Detect Available Reviewers
 
-1. **Bash (background):** Start Gemini + Codex script with `run_in_background: true`
+**Built-in reviewers (always available):**
+- 6 Claude specialists: comment-analyzer, test-analyzer, error-hunter, type-reviewer, code-reviewer, simplifier
+- External LLMs: Gemini, Codex (auto-detected by run-reviews.sh)
+
+**Dynamic reviewers:**
+Check available `subagent_type` values in your context for additional reviewers:
+1. Pattern match - Find agents where name or description contains "reviewer" or "review"
+2. Exclude: `athena-pr-reviewer` (this skill), data-gathering agents (hermes-pr-courier, heimdall-pr-guardian, etc.)
+
+#### 3.2 Present Selection UI
+
+Use `AskUserQuestion` with pagination to let user select reviewers:
+
+**Rules:**
+- Max 4 options per question, max 4 questions per call
+- Each batch shows "All in this batch" + 3 actual reviewers
+- Use `multiSelect: true`
+- Group by category (Built-in specialists, External agents, Dynamic agents)
+
+**Example for 11 reviewers:**
+```
+Question 1/4 - "Select reviewers: Built-in specialists"
+  [ ] All in this batch (Select all 3)
+  [ ] comment-analyzer - Documentation & comments
+  [ ] test-analyzer - Test coverage
+  [ ] error-hunter - Error handling
+
+Question 2/4 - "Select reviewers: More specialists"
+  [ ] All in this batch (Select all 3)
+  [ ] type-reviewer - Type design
+  [ ] code-reviewer - General code quality
+  [ ] simplifier - Code complexity
+
+Question 3/4 - "Select reviewers: External LLMs"
+  [ ] All in this batch (Select all 2)
+  [ ] gemini - Google Gemini analysis
+  [ ] codex - OpenAI Codex analysis
+
+Question 4/4 - "Select reviewers: Dynamic agents"
+  [ ] All in this batch (Select all N)
+  [ ] {detected-agent-1} - {description}
+  [ ] {detected-agent-2} - {description}
+```
+
+#### 3.3 Parse Selection
+
+- If "All in this batch" selected → include all reviewers from that batch
+- Otherwise include only individually selected reviewers
+- Store final list of selected reviewers for step 4
+
+### 4. Run Reviews (Selected Reviewers in Parallel)
+
+Execute all selected reviews simultaneously in a SINGLE message.
+
+**In ONE message, run all selected reviewers:**
+
+#### 4.1 External LLMs (if selected)
+
+If Gemini or Codex were selected, start with `run_in_background: true`:
 ```bash
 ~/.claude/skills/athena-pr-reviewer/scripts/run-reviews.sh ${WORK_DIR}
 ```
 
-2. **6 Task calls:** Run all Claude specialists in parallel
+#### 4.2 Built-in Claude Specialists (if selected)
 
-This launches all 8 reviews at once:
-- Gemini + Codex run in background bash
-- 6 Claude agents run as parallel Task calls
+For each selected built-in specialist, spawn a Task agent:
 
-**After Claude agents complete:** Use BashOutput to check if Gemini/Codex finished.
-
-Output files:
-- `${WORK_DIR}/reviews/gemini.md`
-- `${WORK_DIR}/reviews/codex.md`
-- `${WORK_DIR}/reviews/claude-*.md` (6 files)
-
-**Claude Specialized Reviews (6 agents)**
-
-Each agent reads its prompt file, then analyzes `${WORK_DIR}/context.md` and `${WORK_DIR}/diff.patch`.
+| Specialist | Prompt File | Output File |
+|------------|-------------|-------------|
+| comment-analyzer | `prompts/comment-analyzer.md` | `claude-comments.md` |
+| test-analyzer | `prompts/test-analyzer.md` | `claude-tests.md` |
+| error-hunter | `prompts/error-hunter.md` | `claude-errors.md` |
+| type-reviewer | `prompts/type-reviewer.md` | `claude-types.md` |
+| code-reviewer | `prompts/code-reviewer.md` | `claude-general.md` |
+| simplifier | `prompts/simplifier.md` | `claude-simplify.md` |
 
 ```
 Task: general-purpose
-Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/comment-analyzer.md for instructions.
+Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/{SPECIALIST}.md for instructions.
 Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch. Perform the review. Output markdown."
-Save to: ${WORK_DIR}/reviews/claude-comments.md
-
-Task: general-purpose
-Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/test-analyzer.md for instructions.
-Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch. Perform the review. Output markdown."
-Save to: ${WORK_DIR}/reviews/claude-tests.md
-
-Task: general-purpose
-Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/error-hunter.md for instructions.
-Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch. Perform the review. Output markdown."
-Save to: ${WORK_DIR}/reviews/claude-errors.md
-
-Task: general-purpose
-Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/type-reviewer.md for instructions.
-Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch. Perform the review. Output markdown."
-Save to: ${WORK_DIR}/reviews/claude-types.md
-
-Task: general-purpose
-Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/code-reviewer.md for instructions.
-Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch. Perform the review. Output markdown."
-Save to: ${WORK_DIR}/reviews/claude-general.md
-
-Task: general-purpose
-Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/simplifier.md for instructions.
-Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch. Perform the review. Output markdown."
-Save to: ${WORK_DIR}/reviews/claude-simplify.md
+Save to: ${WORK_DIR}/reviews/{OUTPUT_FILE}
 ```
 
-### 4. Aggregate Reviews
+#### 4.3 Dynamic Reviewer Agents (if selected)
 
-Read all 8 review files and combine findings:
+For each selected dynamic agent, spawn using its own agent type:
 
-**Reviewers:**
-- Gemini (general)
-- Codex (general)
-- Claude: comments, tests, errors, types, general, simplify
+```
+Task: {agent-name}
+Prompt: "Review the PR for code quality issues.
+
+Context file: ${WORK_DIR}/context.md (contains requirements, PR metadata, guidelines)
+Diff file: ${WORK_DIR}/diff.patch (annotated with line numbers)
+
+Use your expertise to identify issues. For each finding include:
+- File path and line number (use format from diff annotations)
+- Severity: Critical/High/Medium/Low
+- Confidence: 0-100
+- Description and suggested fix
+
+Write your review output to: ${WORK_DIR}/reviews/{agent-name}.md"
+```
+
+#### 4.4 Wait for Completion
+
+After all Task agents complete, use `BashOutput` to check if external LLMs finished (if they were selected).
+
+### 5. Aggregate Reviews
+
+Read ALL review files from `${WORK_DIR}/reviews/` directory and combine findings.
+
+**Possible reviewers (depending on selection):**
+- External: gemini.md, codex.md
+- Built-in: claude-comments.md, claude-tests.md, claude-errors.md, claude-types.md, claude-general.md, claude-simplify.md
+- Dynamic: {agent-name}.md (any additional detected agents)
 
 **Confidence Filtering:**
 - Drop findings with confidence < 80
@@ -125,7 +178,7 @@ Read all 8 review files and combine findings:
 
 Deduplicate similar findings, noting which reviewer(s) flagged each and average confidence.
 
-### 4.5 Verify Findings
+### 5.5 Verify Findings
 
 For each aggregated finding, verify against actual code to filter hallucinations:
 
@@ -141,7 +194,7 @@ For each aggregated finding, verify against actual code to filter hallucinations
 
 Output verified findings to `${WORK_DIR}/verified-findings.md`
 
-### 5. Synthesize Actionable Items
+### 6. Synthesize Actionable Items
 
 Present combined review to user:
 
@@ -155,14 +208,14 @@ Present combined review to user:
 ## Action Items (Verified)
 
 ### Critical (consensus, verified)
-- [ ] file:line - issue - fix [Gemini + Codex + Claude-errors] (3+, avg 92%) ✓
+- [ ] file:line - issue - fix [reviewer1 + reviewer2 + reviewer3] (3+, avg 92%) ✓
 
 ### High Priority (verified)
-- [ ] file:line - issue - fix [Gemini + Claude-tests] ← boosted (2, avg 85%) ✓
-- [ ] file:line - issue - fix [Claude-types] (95%) ✓
+- [ ] file:line - issue - fix [reviewer1 + reviewer2] ← boosted (2, avg 85%) ✓
+- [ ] file:line - issue - fix [reviewer1] (95%) ✓
 
 ### Medium Priority (verified)
-- [ ] file:line - issue - fix [Claude-simplify] (88%) ✓
+- [ ] file:line - issue - fix [reviewer1] (88%) ✓
 
 ### Suggestions
 - improvements (including PARTIAL findings downgraded from higher severity)
@@ -171,14 +224,7 @@ Present combined review to user:
 Findings that failed verification are saved to: `${WORK_DIR}/rejected.md`
 
 ## Review Sources
-- Gemini: ${WORK_DIR}/reviews/gemini.md
-- Codex: ${WORK_DIR}/reviews/codex.md
-- Claude Comments: ${WORK_DIR}/reviews/claude-comments.md
-- Claude Tests: ${WORK_DIR}/reviews/claude-tests.md
-- Claude Errors: ${WORK_DIR}/reviews/claude-errors.md
-- Claude Types: ${WORK_DIR}/reviews/claude-types.md
-- Claude General: ${WORK_DIR}/reviews/claude-general.md
-- Claude Simplify: ${WORK_DIR}/reviews/claude-simplify.md
+[List all .md files found in ${WORK_DIR}/reviews/]
 
 ## Recommendation: APPROVE / REQUEST_CHANGES
 ```
@@ -186,20 +232,25 @@ Findings that failed verification are saved to: `${WORK_DIR}/rejected.md`
 ## Examples
 
 **User:** "Review PR 456"
-- Detect PR 456, find linked Jira ticket
-- Gather context via script (parallel CLI calls)
-- Run 8 reviews in parallel (Gemini, Codex, 6 Claude specialists)
-- Aggregate findings, boost items flagged by 2+ reviewers
-- Verify findings against actual diff (filter hallucinations)
-- Present verified actionable summary
+1. Detect PR 456, find linked Jira ticket
+2. Gather context via script (parallel CLI calls)
+3. Detect available reviewers (built-in + any dynamic agents)
+4. Present selection UI - user picks which reviewers to run
+5. Run selected reviews in parallel
+6. Aggregate findings, boost items flagged by 2+ reviewers
+7. Verify findings against actual diff (filter hallucinations)
+8. Present verified actionable summary
 
 **User:** "Review CSD-123"
-- Find PR linked to CSD-123
-- Gather context including acceptance criteria
-- 8 parallel reviews (general + specialized)
-- Present findings with reviewer attribution
+1. Find PR linked to CSD-123
+2. Gather context including acceptance criteria
+3. Present reviewer selection (may include custom security-reviewer agent if installed)
+4. Run selected reviews in parallel
+5. Present findings with reviewer attribution
 
 **User:** "Review this branch"
-- Get PR from current branch
-- Extract Jira from branch name if needed
-- Full 8-reviewer workflow
+1. Get PR from current branch
+2. Extract Jira from branch name if needed
+3. Detect all available reviewers
+4. User selects reviewers via paginated UI
+5. Full review workflow with selected reviewers
