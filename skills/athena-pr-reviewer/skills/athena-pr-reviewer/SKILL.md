@@ -129,6 +129,8 @@ Perform the review and use the Write tool to save your findings to: ${WORK_DIR}/
 IMPORTANT: Use the Write tool directly, not Bash with cat/heredoc."
 ```
 
+**Note: Each Task call returns a `task_id`. Save these - you will need them in step 4.4.**
+
 #### 4.3 Dynamic Reviewer Agents (if selected)
 
 For each selected dynamic agent, spawn using its own agent type:
@@ -150,15 +152,36 @@ Use the Write tool to save your review to: ${WORK_DIR}/reviews/{agent-name}.md
 IMPORTANT: Use the Write tool directly, not Bash with cat/heredoc."
 ```
 
-#### 4.4 Wait for Completion
+**Note: Each Task call returns a `task_id`. Save these - you will need them in step 4.4.**
 
-**CRITICAL: Do NOT proceed to aggregation until ALL agents have completed.**
+#### 4.4 Wait for ALL Agents to Complete
 
-1. **Wait for ALL Task agents** - Use `TaskOutput` with `block: true` for each running agent to ensure they complete before proceeding. Do not aggregate based on "most" being done.
+**STOP. Do NOT proceed until you complete this step.**
 
-2. **Wait for external LLMs** - If run-reviews.sh was started in background, use `TaskOutput` to check it completed.
+When you spawned Task agents in steps 4.1-4.3, each returned a `task_id`. You MUST now:
 
-Only proceed to Step 5 when every single reviewer has finished.
+1. **List all task IDs** you received from spawning agents
+2. **For EACH task_id, call TaskOutput:**
+   ```
+   TaskOutput(task_id: "abc123", block: true)
+   TaskOutput(task_id: "def456", block: true)
+   TaskOutput(task_id: "ghi789", block: true)
+   ... one call per spawned agent
+   ```
+3. **Do NOT skip any** - even if you see some agent output appear automatically
+
+**FORBIDDEN:**
+- ❌ Proceeding when "most" agents are done
+- ❌ Relying on automatic output appearing
+- ❌ Skipping TaskOutput for agents that seem fast
+- ❌ Moving to Step 5 before ALL TaskOutput calls return
+
+**REQUIRED:**
+- ✓ Call TaskOutput for EVERY spawned agent
+- ✓ Use `block: true` on each call
+- ✓ Wait for each call to return before proceeding
+
+Only after ALL TaskOutput calls have returned, proceed to Step 5.
 
 ### 5. Aggregate Reviews
 
