@@ -249,11 +249,19 @@ Would you like me to walk through any of these issues in detail? I can:
 Reply with "yes" to go through them one by one, or pick specific items (e.g., "explain the first critical issue").
 ```
 
-If the user accepts, iterate through each action item:
+If the user accepts, go through items **ONE AT A TIME**:
+
+For each item:
 1. Show the relevant code snippet from the diff
 2. Explain why it's problematic with more context
 3. Propose a concrete fix with code
 4. Share your opinion on severity and whether it's a blocker
+
+**CRITICAL: After presenting ONE item, STOP and wait for user input.**
+
+Ask: "Ready for the next issue? (N remaining)" or let them say "skip", "stop", or ask questions about the current item.
+
+Do NOT present multiple items in a single response.
 
 ## Examples
 
