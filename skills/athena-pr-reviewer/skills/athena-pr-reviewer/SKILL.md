@@ -153,7 +153,13 @@ IMPORTANT: Use the Write tool directly, not Bash with cat/heredoc."
 
 #### 4.4 Wait for Completion
 
-After all Task agents complete, use `BashOutput` to check if external LLMs finished (if they were selected).
+**CRITICAL: Do NOT proceed to aggregation until ALL agents have completed.**
+
+1. **Wait for ALL Task agents** - Use `TaskOutput` with `block: true` for each running agent to ensure they complete before proceeding. Do not aggregate based on "most" being done.
+
+2. **Wait for external LLMs** - If run-reviews.sh was started in background, use `TaskOutput` to check it completed.
+
+Only proceed to Step 5 when every single reviewer has finished.
 
 ### 5. Aggregate Reviews
 
