@@ -125,8 +125,9 @@ For each selected built-in specialist, spawn a Task agent:
 ```
 Task: general-purpose
 Prompt: "Read ~/.claude/skills/athena-pr-reviewer/prompts/{SPECIALIST}.md for instructions.
-Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch. Perform the review. Output markdown."
-Save to: ${WORK_DIR}/reviews/{OUTPUT_FILE}
+Then read ${WORK_DIR}/context.md and ${WORK_DIR}/diff.patch.
+Perform the review and use the Write tool to save your findings to: ${WORK_DIR}/reviews/{OUTPUT_FILE}
+IMPORTANT: Use the Write tool directly, not Bash with cat/heredoc."
 ```
 
 #### 4.3 Dynamic Reviewer Agents (if selected)
@@ -146,7 +147,8 @@ Use your expertise to identify issues. For each finding include:
 - Confidence: 0-100
 - Description and suggested fix
 
-Write your review output to: ${WORK_DIR}/reviews/{agent-name}.md"
+Use the Write tool to save your review to: ${WORK_DIR}/reviews/{agent-name}.md
+IMPORTANT: Use the Write tool directly, not Bash with cat/heredoc."
 ```
 
 #### 4.4 Wait for Completion
