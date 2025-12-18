@@ -55,46 +55,45 @@ Check available `subagent_type` values in your context for additional reviewers:
 1. Pattern match - Find agents where name or description contains "reviewer" or "review"
 2. Exclude: `athena-pr-reviewer` (this skill), data-gathering agents (hermes-pr-courier, heimdall-pr-guardian, etc.)
 
-#### 3.2 Present Selection UI
+#### 3.2 Confirm or Customize Reviewers
 
-Use `AskUserQuestion` with pagination to let user select reviewers:
+First, show all detected reviewers and ask for confirmation:
 
-**Rules:**
+```
+I'll run the review with these agents:
+
+**Claude specialists (6):** (built-in, always available)
+- comment-analyzer, test-analyzer, error-hunter
+- type-reviewer, code-reviewer, simplifier
+
+**External LLMs (2):** (run outside Claude via CLI)
+- Gemini, Codex
+
+**Installed agents (N):** (detected in your Claude setup)
+- {agent-1}, {agent-2}, ...
+- (or "None detected" if empty)
+
+Proceed with all {total} reviewers?
+```
+
+Use `AskUserQuestion` with:
+- **Yes, run all** (Recommended) - Proceed with all detected reviewers
+- **No, let me choose** - Show detailed selection UI
+
+#### 3.3 Handle Response
+
+**If "Yes, run all":** Proceed to step 4 with all detected reviewers.
+
+**If "No, let me choose":** Show paginated multi-select UI:
+
 - Max 4 options per question, max 4 questions per call
 - Each batch shows "All in this batch" + 3 actual reviewers
 - Use `multiSelect: true`
 - Group by category (Built-in specialists, External agents, Dynamic agents)
 
-**Example for 11 reviewers:**
-```
-Question 1/4 - "Select reviewers: Built-in specialists"
-  [ ] All in this batch (Select all 3)
-  [ ] comment-analyzer - Documentation & comments
-  [ ] test-analyzer - Test coverage
-  [ ] error-hunter - Error handling
-
-Question 2/4 - "Select reviewers: More specialists"
-  [ ] All in this batch (Select all 3)
-  [ ] type-reviewer - Type design
-  [ ] code-reviewer - General code quality
-  [ ] simplifier - Code complexity
-
-Question 3/4 - "Select reviewers: External LLMs"
-  [ ] All in this batch (Select all 2)
-  [ ] gemini - Google Gemini analysis
-  [ ] codex - OpenAI Codex analysis
-
-Question 4/4 - "Select reviewers: Dynamic agents"
-  [ ] All in this batch (Select all N)
-  [ ] {detected-agent-1} - {description}
-  [ ] {detected-agent-2} - {description}
-```
-
-#### 3.3 Parse Selection
-
+Parse selection:
 - If "All in this batch" selected → include all reviewers from that batch
 - Otherwise include only individually selected reviewers
-- Store final list of selected reviewers for step 4
 
 ### 4. Run Reviews (Selected Reviewers in Parallel)
 
