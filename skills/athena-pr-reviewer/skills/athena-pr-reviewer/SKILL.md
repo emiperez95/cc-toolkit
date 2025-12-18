@@ -237,6 +237,25 @@ Findings that failed verification are saved to: `${WORK_DIR}/rejected.md`
 ## Recommendation: APPROVE / REQUEST_CHANGES
 ```
 
+### 7. Offer Deep Dive
+
+After presenting the summary, offer to iterate through action items:
+
+```
+Would you like me to walk through any of these issues in detail? I can:
+- Explain each issue with more context
+- Show the actual code and a potential fix
+- Give my opinion on priority and approach
+
+Reply with "yes" to go through them one by one, or pick specific items (e.g., "explain the first critical issue").
+```
+
+If the user accepts, iterate through each action item:
+1. Show the relevant code snippet from the diff
+2. Explain why it's problematic with more context
+3. Propose a concrete fix with code
+4. Share your opinion on severity and whether it's a blocker
+
 ## Examples
 
 **User:** "Review PR 456"
