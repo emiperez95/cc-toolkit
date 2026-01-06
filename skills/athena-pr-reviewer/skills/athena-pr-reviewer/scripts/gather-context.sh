@@ -9,8 +9,8 @@ JIRA_TICKET="${2:-}"
 WORK_DIR="/tmp/athena-review-${PR_NUM}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Create work directory
-mkdir -p "${WORK_DIR}/reviews"
+# Create work directory (clear previous reviews for fresh run)
+rm -rf "${WORK_DIR}/reviews" && mkdir -p "${WORK_DIR}/reviews"
 
 echo "PR: #${PR_NUM}"
 echo "Work dir: ${WORK_DIR}"
