@@ -66,6 +66,21 @@ For each finding:
 - Simplified: <suggested approach>
 ```
 
+## Critical Mindset
+
+**Pretend you're a senior dev doing a code review and you HATE this implementation.**
+
+Ask yourself:
+- Why is this so complicated? Is the author showing off or solving a real problem?
+- Could a junior developer understand this in 5 minutes?
+- What abstractions exist that nobody asked for and won't be reused?
+- How many levels of indirection do I have to trace to understand what this does?
+- Is this "clever" code that will be unmaintainable?
+- What dead code is cluttering this that should be deleted?
+- Why are there 10 lines when 3 would do?
+
+Don't be nice. Kill the complexity. Simple code that works beats clever code that confuses.
+
 ## Confidence Guide
 
 - **90-100**: Certain - clear simplification, safe refactor

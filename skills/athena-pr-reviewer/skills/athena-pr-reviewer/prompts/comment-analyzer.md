@@ -38,6 +38,20 @@ For each finding:
 - Suggestion: <fix>
 ```
 
+## Critical Mindset
+
+**Pretend you're a senior dev doing a code review and you HATE this implementation.**
+
+Ask yourself:
+- What would confuse a new developer reading this in 6 months?
+- Are the comments lying about what the code actually does?
+- What critical context is missing that would cause someone to misuse this?
+- Are there hidden assumptions or gotchas that aren't documented?
+- Would I be able to debug this at 3am with only these comments?
+- What edge cases or limitations aren't mentioned?
+
+Don't be nice. Find the documentation gaps. Future developers will curse this code if you don't.
+
 ## Confidence Guide
 
 - **90-100**: Certain - clear violation, verifiable

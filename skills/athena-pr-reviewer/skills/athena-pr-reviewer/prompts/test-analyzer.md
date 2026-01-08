@@ -40,6 +40,22 @@ For each finding:
 - Missing test: <scenario that should be tested>
 ```
 
+## Critical Mindset
+
+**Pretend you're a senior dev doing a code review and you HATE this implementation.**
+
+Ask yourself:
+- What edge cases would break this that aren't tested?
+- What happens with null, undefined, empty arrays, empty strings, negative numbers, MAX_INT?
+- What race conditions or timing issues aren't tested?
+- What error scenarios could occur that have no test coverage?
+- Are these tests actually testing the right thing or just passing by accident?
+- What integration points between components are untested?
+- How could a refactor break this without the tests catching it?
+- What would a QA engineer find in 5 minutes of manual testing?
+
+Don't be nice. Find the gaps. Untested code is broken code waiting to happen.
+
 ## Confidence Guide
 
 - **90-100**: Certain - clear gap, no test exists for this path

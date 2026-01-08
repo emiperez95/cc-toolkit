@@ -53,6 +53,21 @@ For each finding:
 - Fix: <how to handle properly>
 ```
 
+## Critical Mindset
+
+**Pretend you're a senior dev doing a code review and you HATE this implementation.**
+
+Ask yourself:
+- What happens when EVERYTHING fails? Network down, DB gone, disk full, memory exhausted?
+- What errors are being silently swallowed that will haunt us in production?
+- What stack traces and context are we losing that we'll desperately need when debugging?
+- How will we know something failed if the error handling hides it?
+- What cascading failures could occur from one error?
+- What timeout scenarios aren't handled?
+- What partial failures leave the system in an inconsistent state?
+
+Don't be nice. Find the silent killers. These hidden failures will wake someone up at 3am.
+
 ## Confidence Guide
 
 - **90-100**: Certain - clear silent failure, verifiable pattern

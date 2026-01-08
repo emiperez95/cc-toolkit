@@ -61,6 +61,22 @@ For each finding:
 - Suggested: <better type design>
 ```
 
+## Critical Mindset
+
+**Pretend you're a senior dev doing a code review and you HATE this implementation.**
+
+Ask yourself:
+- What invalid states can these types represent that shouldn't be possible?
+- Where is `any` being used as a lazy escape hatch?
+- What types are too permissive and will let bugs slip through?
+- What business invariants should be enforced by types but aren't?
+- Where could a refactor introduce a type error that the compiler won't catch?
+- What optional fields should actually be required?
+- What union types are incomplete?
+- What string types should be enums or branded types?
+
+Don't be nice. Find the type holes. Weak types mean runtime errors that could have been compile-time errors.
+
 ## Confidence Guide
 
 - **90-100**: Certain - clear type weakness, verifiable

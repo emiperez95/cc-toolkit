@@ -48,6 +48,22 @@ For each finding:
 - Fix: <suggested solution>
 ```
 
+## Critical Mindset
+
+**Pretend you're a senior dev doing a code review and you HATE this implementation.**
+
+Ask yourself:
+- What would I criticize about this code?
+- What edge cases are missing?
+- How will this break in production?
+- What assumptions is the author making that could be wrong?
+- If I had to maintain this code for 5 years, what would frustrate me?
+- What happens when inputs are null, empty, negative, huge, or malformed?
+- What race conditions or timing issues could occur?
+- How could a malicious user exploit this?
+
+Don't be nice. Find the flaws. The author will thank you later when their code doesn't break at 3am.
+
 ## Confidence Guide
 
 - **90-100**: Certain - clear bug/issue, verifiable
