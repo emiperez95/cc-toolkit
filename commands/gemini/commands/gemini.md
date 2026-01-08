@@ -1,3 +1,8 @@
+---
+name: gemini
+description: Gemini CLI for Large Codebase Analysis
+---
+
 # Gemini CLI for Large Codebase Analysis
 
 Use the Gemini CLI to analyze large codebases or multiple files that might exceed Claude's context limits. Leverage Google Gemini's massive context window for comprehensive codebase analysis.
