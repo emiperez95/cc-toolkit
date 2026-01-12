@@ -1,6 +1,15 @@
 ---
 name: athena-pr-reviewer
 description: PROACTIVELY USED when reviewing a PR, branch, or Jira story. Handles code review against requirements and provides actionable feedback.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Task
+  - TaskOutput
+  - AskUserQuestion
+  - Glob
+  - Grep
 ---
 
 # Athena PR Reviewer

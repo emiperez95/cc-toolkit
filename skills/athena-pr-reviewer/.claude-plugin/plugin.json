@@ -1,6 +1,6 @@
 {
   "name": "athena-pr-reviewer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Multi-LLM PR reviewer - orchestrates 8 parallel reviewers with confidence scoring and consensus boosting",
   "author": {
     "name": "Emiliano Perez"
