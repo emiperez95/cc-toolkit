@@ -10,11 +10,30 @@ allowed-tools:
   - AskUserQuestion
   - Glob
   - Grep
+  - TodoWrite
 ---
 
 # Athena PR Reviewer
 
 ## Instructions
+
+### Progress Tracking
+
+Use `TodoWrite` throughout the review to show progress. Initialize at start:
+
+```
+TodoWrite([
+  {content: "Detect PR target", status: "in_progress", activeForm: "Detecting PR target"},
+  {content: "Gather context", status: "pending", activeForm: "Gathering context"},
+  {content: "Select reviewers", status: "pending", activeForm: "Selecting reviewers"},
+  {content: "Run reviews", status: "pending", activeForm: "Running reviews"},
+  {content: "Aggregate findings", status: "pending", activeForm: "Aggregating findings"},
+  {content: "Verify findings", status: "pending", activeForm: "Verifying findings"},
+  {content: "Present summary", status: "pending", activeForm: "Presenting summary"}
+])
+```
+
+Update todos as you complete each step. Mark current step `in_progress`, previous step `completed`.
 
 ### 1. Detect PR Target
 
@@ -108,6 +127,26 @@ Parse selection:
 
 Execute all selected reviews simultaneously in a SINGLE message.
 
+**First, update todos to show individual reviewers:**
+
+Replace the "Run reviews" todo with one todo per selected reviewer:
+
+```
+TodoWrite([
+  {content: "Detect PR target", status: "completed", activeForm: "Detecting PR target"},
+  {content: "Gather context", status: "completed", activeForm: "Gathering context"},
+  {content: "Select reviewers", status: "completed", activeForm: "Selecting reviewers"},
+  // One todo per selected reviewer:
+  {content: "Review: comment-analyzer", status: "pending", activeForm: "Running comment-analyzer"},
+  {content: "Review: test-analyzer", status: "pending", activeForm: "Running test-analyzer"},
+  {content: "Review: error-hunter", status: "pending", activeForm: "Running error-hunter"},
+  // ... etc for all selected reviewers
+  {content: "Aggregate findings", status: "pending", activeForm: "Aggregating findings"},
+  {content: "Verify findings", status: "pending", activeForm: "Verifying findings"},
+  {content: "Present summary", status: "pending", activeForm: "Presenting summary"}
+])
+```
+
 **In ONE message, run all selected reviewers:**
 
 #### 4.1 External LLMs (if selected)
@@ -178,6 +217,7 @@ When you spawned Task agents in steps 4.1-4.3, each returned a `task_id`. You MU
    ... one call per spawned agent
    ```
 3. **Do NOT skip any** - even if you see some agent output appear automatically
+4. **Update todos** - Mark each reviewer as `completed` when its TaskOutput returns
 
 **FORBIDDEN:**
 - ❌ Proceeding when "most" agents are done
@@ -188,6 +228,7 @@ When you spawned Task agents in steps 4.1-4.3, each returned a `task_id`. You MU
 **REQUIRED:**
 - ✓ Call TaskOutput for EVERY spawned agent
 - ✓ Use `block: true` on each call
+- ✓ Mark reviewer todo as `completed` when TaskOutput returns
 - ✓ Wait for each call to return before proceeding
 
 Only after ALL TaskOutput calls have returned, proceed to Step 5.
@@ -281,15 +322,33 @@ Would you like me to walk through any of these issues in detail? I can:
 Reply with "yes" to go through them one by one, or pick specific items (e.g., "explain the first critical issue").
 ```
 
-If the user accepts, go through items **ONE AT A TIME**:
+If the user accepts, **replace todos with action items**:
+
+```
+TodoWrite([
+  {content: "Critical: {first issue summary}", status: "in_progress", activeForm: "Reviewing critical issue"},
+  {content: "High: {second issue summary}", status: "pending", activeForm: "Reviewing high priority issue"},
+  {content: "High: {third issue summary}", status: "pending", activeForm: "Reviewing high priority issue"},
+  {content: "Medium: {fourth issue summary}", status: "pending", activeForm: "Reviewing medium priority issue"},
+  // ... one per action item, ordered by severity
+])
+```
+
+Go through items **ONE AT A TIME**:
 
 For each item:
-1. Show the relevant code snippet from the diff
-2. Explain why it's problematic with more context
-3. Propose a concrete fix with code
-4. Share your opinion on severity and whether it's a blocker
+1. Mark current item as `in_progress`
+2. Show the relevant code snippet from the diff
+3. Explain why it's problematic with more context
+4. Propose a concrete fix with code
+5. Share your opinion on severity and whether it's a blocker
 
 **CRITICAL: After presenting ONE item, STOP and wait for user input.**
+
+When user says "next", "continue", or similar:
+1. Mark current item as `completed`
+2. Mark next item as `in_progress`
+3. Present the next item
 
 Ask: "Ready for the next issue? (N remaining)" or let them say "skip", "stop", or ask questions about the current item.
 
