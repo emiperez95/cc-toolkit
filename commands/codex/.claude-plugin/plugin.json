@@ -1,0 +1,17 @@
+{
+  "name": "codex-command",
+  "version": "1.0.0",
+  "description": "OpenAI Codex CLI integration - GPT-5-Codex with local and cloud execution support",
+  "author": {
+    "name": "Emiliano Perez"
+  },
+  "repository": "https://github.com/emiperez95/claude-agents",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "openai",
+    "gpt5",
+    "coding",
+    "cloud"
+  ]
+}
