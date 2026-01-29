@@ -258,6 +258,8 @@ Read ALL review files from `${WORK_DIR}/reviews/` directory and combine findings
 
 Deduplicate similar findings, noting which reviewer(s) flagged each and average confidence.
 
+**Theme Clustering:** Group findings by type or concept similarity so related issues can be tackled together. Let themes emerge naturally from the findings. Within each theme, sort by severity (Critical → High → Medium).
+
 ### 5.5 Verify Findings
 
 For each aggregated finding, verify against actual code to filter hallucinations:
@@ -287,15 +289,18 @@ Present combined review to user:
 
 ## Action Items (Verified)
 
-### Critical (consensus, verified)
-- [ ] file:line - issue - fix [reviewer1 + reviewer2 + reviewer3] (3+, avg 92%) ✓
+<!-- Group by theme (type/concept similarity), priority shown inline -->
 
-### High Priority (verified)
-- [ ] file:line - issue - fix [reviewer1 + reviewer2] ← boosted (2, avg 85%) ✓
-- [ ] file:line - issue - fix [reviewer1] (95%) ✓
+### {Theme 1}
+- [ ] **Critical** file:line - issue - fix [reviewer1 + reviewer2] (92%) ✓
+- [ ] **High** file:line - issue - fix [reviewer1] (88%) ✓
 
-### Medium Priority (verified)
-- [ ] file:line - issue - fix [reviewer1] (88%) ✓
+### {Theme 2}
+- [ ] **High** file:line - issue - fix [reviewer1 + reviewer2] (85%) ✓
+- [ ] **Medium** file:line - issue - fix [reviewer1] (82%) ✓
+
+### {Theme N}
+- [ ] ...
 
 ### Suggestions
 - improvements (including PARTIAL findings downgraded from higher severity)
@@ -309,50 +314,39 @@ Findings that failed verification are saved to: `${WORK_DIR}/rejected.md`
 ## Recommendation: APPROVE / REQUEST_CHANGES
 ```
 
-### 7. Offer Deep Dive
+### 7. Offer to Address Themes
 
-After presenting the summary, offer to iterate through action items:
+After presenting the summary, offer to work through themes:
 
 ```
-Would you like me to walk through any of these issues in detail? I can:
-- Explain each issue with more context
-- Show the actual code and a potential fix
-- Give my opinion on priority and approach
+Would you like me to walk through these themes? For each item I'll explain the issue, propose a solution, and you decide whether to fix or skip.
 
-Reply with "yes" to go through them one by one, or pick specific items (e.g., "explain the first critical issue").
+Reply with "yes" to start, or pick a specific theme.
 ```
 
-If the user accepts, **replace todos with action items**:
+If the user accepts, **replace todos with themes**:
 
 ```
 TodoWrite([
-  {content: "Critical: {first issue summary}", status: "in_progress", activeForm: "Reviewing critical issue"},
-  {content: "High: {second issue summary}", status: "pending", activeForm: "Reviewing high priority issue"},
-  {content: "High: {third issue summary}", status: "pending", activeForm: "Reviewing high priority issue"},
-  {content: "Medium: {fourth issue summary}", status: "pending", activeForm: "Reviewing medium priority issue"},
-  // ... one per action item, ordered by severity
+  {content: "Theme 1 (N issues)", status: "in_progress", activeForm: "Addressing Theme 1"},
+  {content: "Theme 2 (N issues)", status: "pending", activeForm: "Addressing Theme 2"},
+  // ... one todo per theme
 ])
 ```
 
-Go through items **ONE AT A TIME**:
+**Work through ONE THEME at a time:**
 
-For each item:
-1. Mark current item as `in_progress`
-2. Show the relevant code snippet from the diff
-3. Explain why it's problematic with more context
-4. Propose a concrete fix with code
-5. Share your opinion on severity and whether it's a blocker
+For the current theme, go through each item:
+1. Present the issue with code snippet
+2. Explain the problem and share your opinion
+3. Propose a solution
+4. Wait for user decision: "fix" or "skip"
+5. If fix: implement the change immediately, then commit
+6. Move to next item in theme
 
-**CRITICAL: After presenting ONE item, STOP and wait for user input.**
+Once all items in a theme are addressed (fixed or skipped), mark theme `completed` and present the next theme.
 
-When user says "next", "continue", or similar:
-1. Mark current item as `completed`
-2. Mark next item as `in_progress`
-3. Present the next item
-
-Ask: "Ready for the next issue? (N remaining)" or let them say "skip", "stop", or ask questions about the current item.
-
-Do NOT present multiple items in a single response.
+**CRITICAL: Do NOT accumulate changes. Each item is either implemented+committed or discarded before moving on.**
 
 ## Examples
 
