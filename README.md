@@ -33,12 +33,22 @@ Or install individual plugins:
 | Name | Description |
 |------|-------------|
 | **gemini** | Leverage Gemini's massive context window for large codebase analysis |
+| **codex** | OpenAI Codex CLI with local and cloud execution modes |
 
 ### Skills
 
 | Name | Description |
 |------|-------------|
 | **athena-pr-reviewer** | Multi-LLM PR reviewer with up to 8 parallel reviewers (auto-detects available LLM providers) |
+| **harvest-timesheet** | Automate Harvest timesheet filling from Google Calendar meetings |
+
+**Harvest Timesheet Features:**
+- Auto-discovers Harvest rows from previous month on first run
+- Reads Google Calendar meetings via Chrome DevTools MCP
+- Categorizes meetings into Harvest rows with growing memory
+- Fills Harvest weekly grid with calculated hours
+- Free-form config supports multi-project setups
+- Config stored at `~/.claude/harvest-timesheet.local.md`
 
 **Athena Features:**
 - 6 specialized Claude reviewers (comments, tests, errors, types, general, simplifier)
@@ -70,6 +80,7 @@ To disable auto-approval, remove the `hooks/` directory from the plugin.
 - **Atlassian CLI** (`acli`): Required for Jira agents
 - **rclone**: Required for Google Drive agent (clio-docs-oracle)
 - **Notion MCP**: Required for Notion agent (minerva-notion-oracle)
+- **Chrome DevTools MCP**: Required for harvest-timesheet (bundled with plugin)
 - **Gemini CLI**: Optional, enhances athena-pr-reviewer
 - **Codex CLI**: Optional, enhances athena-pr-reviewer
 
