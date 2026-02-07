@@ -1,0 +1,11 @@
+{
+  "name": "harvest-timesheet",
+  "version": "0.1.0",
+  "description": "Automate Harvest timesheet from Google Calendar meetings",
+  "author": {
+    "name": "Emiliano Perez"
+  },
+  "repository": "https://github.com/emiperez95/cc-toolkit",
+  "license": "MIT",
+  "keywords": ["harvest", "timesheet", "calendar", "automation"]
+}
