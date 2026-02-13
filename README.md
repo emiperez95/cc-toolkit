@@ -34,6 +34,7 @@ Or install individual plugins:
 |------|-------------|
 | **gemini** | Leverage Gemini's massive context window for large codebase analysis |
 | **codex** | OpenAI Codex CLI with local and cloud execution modes |
+| **memory-compact** | Compact and reorganize Claude Code auto-memory files |
 
 ### Skills
 

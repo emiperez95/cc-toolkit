@@ -1,0 +1,11 @@
+{
+  "name": "memory-compact",
+  "version": "1.0.0",
+  "description": "Compact and reorganize Claude Code auto-memory files",
+  "author": {
+    "name": "Emiliano Perez"
+  },
+  "repository": "https://github.com/emiperez95/cc-toolkit",
+  "license": "MIT",
+  "keywords": ["memory", "compact", "cleanup", "organization"]
+}
