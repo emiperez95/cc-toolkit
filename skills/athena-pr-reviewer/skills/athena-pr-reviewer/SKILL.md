@@ -83,9 +83,15 @@ Check available `subagent_type` values in your context for additional reviewers:
 1. Pattern match - Find agents where name or description contains "reviewer" or "review"
 2. Exclude: `athena-pr-reviewer` (this skill), data-gathering agents (hermes-pr-courier, heimdall-pr-guardian, etc.)
 
-#### 3.2 Confirm or Customize Reviewers
+#### 3.2 Check for "all" Flag
 
-First, show all detected reviewers and ask for confirmation:
+If the user's original message includes "all" or "all reviewers" or "don't ask" or "no questions" (case-insensitive), **skip the selection prompt entirely** and proceed to step 4 with all detected reviewers. Do NOT call `AskUserQuestion`.
+
+Otherwise, proceed to 3.3.
+
+#### 3.3 Confirm or Customize Reviewers
+
+Show all detected reviewers and ask for confirmation:
 
 ```
 I'll run the review with these agents:
@@ -108,7 +114,7 @@ Use `AskUserQuestion` with:
 - **Yes, run all** (Recommended) - Proceed with all detected reviewers
 - **No, let me choose** - Show detailed selection UI
 
-#### 3.3 Handle Response
+#### 3.4 Handle Response
 
 **If "Yes, run all":** Proceed to step 4 with all detected reviewers.
 
@@ -314,17 +320,22 @@ Findings that failed verification are saved to: `${WORK_DIR}/rejected.md`
 ## Recommendation: APPROVE / REQUEST_CHANGES
 ```
 
-### 7. Offer to Address Themes
+### 7. Offer to Address Findings
 
-After presenting the summary, offer to work through themes:
+After presenting the summary, offer the user a choice using `AskUserQuestion`:
 
 ```
-Would you like me to walk through these themes? For each item I'll explain the issue, propose a solution, and you decide whether to fix or skip.
-
-Reply with "yes" to start, or pick a specific theme.
+How would you like to address the findings?
 ```
 
-If the user accepts, **replace todos with themes**:
+Options:
+- **Walk through one by one** - I'll present each item and you decide fix or skip
+- **Auto-fix all** (Recommended) - I'll fix everything that doesn't require a product decision and report back
+- **I'm done** - Just keep the review summary, no fixes
+
+#### 7a. Walk Through (one by one)
+
+**Replace todos with themes:**
 
 ```
 TodoWrite([
@@ -348,17 +359,76 @@ Once all items in a theme are addressed (fixed or skipped), mark theme `complete
 
 **CRITICAL: Do NOT accumulate changes. Each item is either implemented+committed or discarded before moving on.**
 
+#### 7b. Auto-fix All
+
+Autonomously fix all findings that are purely technical (no product decisions needed).
+
+**First, classify each finding:**
+- **Auto-fixable**: Bug fixes, type fixes, error handling improvements, test additions, code simplification, comment corrections — anything where the correct fix is unambiguous from the code context
+- **Needs product decision**: Changes that affect user-facing behavior, API contracts, feature scope, data models, or where multiple valid approaches exist and the "right" one depends on product intent
+
+**Then create a todo list with ALL findings:**
+
+```
+TodoWrite([
+  {content: "Fix: [finding description] (file:line)", status: "pending", activeForm: "Fixing [short desc]"},
+  {content: "Fix: [finding description] (file:line)", status: "pending", activeForm: "Fixing [short desc]"},
+  {content: "PRODUCT: [finding description] (file:line)", status: "pending", activeForm: "..."},
+  // ... one todo per finding, prefixed with "Fix:" or "PRODUCT:"
+])
+```
+
+**Work through all auto-fixable items:**
+1. Mark item `in_progress`
+2. Implement the fix
+3. Mark item `completed`
+4. Move to next item (do NOT wait for user input between items)
+
+**Skip all PRODUCT items** — leave them as `pending`.
+
+**After all auto-fixable items are done, present a summary:**
+
+```markdown
+## Auto-fix Summary
+
+### Completed ({N} items)
+- [x] file:line - what was fixed
+- [x] file:line - what was fixed
+...
+
+### Needs Product Decision ({M} items)
+For each item, explain:
+- **Issue**: what the finding is
+- **Why it needs your input**: what decision is required
+- **Options**: the possible approaches (if applicable)
+
+Would you like to address the product decisions now, or commit what we have?
+```
+
+**If the user wants to address product decisions:** Walk through them one by one (same flow as 7a but only for the remaining PRODUCT items).
+
+#### 7c. I'm Done
+
+Do nothing further. The review summary stands as-is.
+
 ## Examples
 
 **User:** "Review PR 456"
 1. Detect PR 456, find linked Jira ticket
 2. Gather context via script (parallel CLI calls)
-3. Detect available reviewers (built-in + any dynamic agents)
-4. Present selection UI - user picks which reviewers to run
-5. Run selected reviews in parallel
-6. Aggregate findings, boost items flagged by 2+ reviewers
-7. Verify findings against actual diff (filter hallucinations)
-8. Present verified actionable summary
+3. Detect available reviewers → ask to confirm or customize
+4. Run selected reviews in parallel
+5. Aggregate findings, boost items flagged by 2+ reviewers
+6. Verify findings against actual diff (filter hallucinations)
+7. Present verified actionable summary
+8. Offer: walk through, auto-fix, or done
+
+**User:** "Review PR 456 with all reviewers"
+1. Detect PR 456, find linked Jira ticket
+2. Gather context via script
+3. "all" keyword detected → skip reviewer selection, use all
+4. Run all reviews in parallel
+5. Full review workflow
 
 **User:** "Review CSD-123"
 1. Find PR linked to CSD-123
@@ -366,6 +436,7 @@ Once all items in a theme are addressed (fixed or skipped), mark theme `complete
 3. Present reviewer selection (may include custom security-reviewer agent if installed)
 4. Run selected reviews in parallel
 5. Present findings with reviewer attribution
+6. User chooses auto-fix → agent fixes technical items, reports product questions
 
 **User:** "Review this branch"
 1. Get PR from current branch
