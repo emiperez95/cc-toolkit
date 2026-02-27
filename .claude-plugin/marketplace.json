@@ -42,6 +42,21 @@
       "name": "athena-pr-reviewer",
       "source": "./skills/athena-pr-reviewer",
       "description": "Skill: Multi-LLM PR reviewer with 8 parallel reviewers (Gemini + Codex + 6 Claude specialists)"
+    },
+    {
+      "name": "harvest-timesheet",
+      "source": "./skills/harvest-timesheet",
+      "description": "Skill: Automate Harvest timesheet filling from Google Calendar meetings"
+    },
+    {
+      "name": "codex",
+      "source": "./commands/codex",
+      "description": "Command: OpenAI Codex CLI integration with local and cloud execution support"
+    },
+    {
+      "name": "memory-compact",
+      "source": "./commands/memory-compact",
+      "description": "Command: Compact and reorganize Claude Code auto-memory files"
     }
   ]
 }
