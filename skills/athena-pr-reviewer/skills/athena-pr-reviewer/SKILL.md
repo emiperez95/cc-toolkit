@@ -33,9 +33,23 @@ TodoWrite([
 ])
 ```
 
+**QUICK MODE uses a shorter todo list instead:**
+
+```
+TodoWrite([
+  {content: "Detect PR target", status: "in_progress", activeForm: "Detecting PR target"},
+  {content: "Gather context", status: "pending", activeForm: "Gathering context"},
+  {content: "Run: code-reviewer", status: "pending", activeForm: "Running code-reviewer"},
+  {content: "Verify findings", status: "pending", activeForm: "Verifying findings"},
+  {content: "Present summary", status: "pending", activeForm: "Presenting summary"}
+])
+```
+
 Update todos as you complete each step. Mark current step `in_progress`, previous step `completed`.
 
-### 1. Detect PR Target
+### 1. Detect Mode & PR Target
+
+**Mode Detection:** Check if the user's message contains "quick" (case-insensitive). If yes → **QUICK MODE** (single code-reviewer). If no → **FULL MODE** (existing pipeline). The word "all" or "full" always forces FULL MODE even if "quick" also appears.
 
 Parse user input to identify the PR:
 
@@ -69,6 +83,8 @@ Output files:
 - `prior-comments.md` - Comments from past PRs touching same files
 
 ### 3. Detect and Select Reviewers
+
+**[QUICK MODE: Skip this step entirely. Proceed to Step 4 with code-reviewer only.]**
 
 Before running reviews, detect available reviewer agents and let the user select which to use.
 
@@ -130,6 +146,8 @@ Parse selection:
 - Otherwise include only individually selected reviewers
 
 ### 4. Run Reviews (Selected Reviewers in Parallel)
+
+**[QUICK MODE: Spawn only ONE Task agent using `prompts/code-reviewer.md`. No external LLMs (Gemini/Codex). No dynamic agents. Skip 4.1, 4.3. Only run 4.2 with code-reviewer. Then proceed to 4.4 to wait for it.]**
 
 Execute all selected reviews simultaneously in a SINGLE message.
 
@@ -241,6 +259,8 @@ Only after ALL TaskOutput calls have returned, proceed to Step 5.
 
 ### 5. Aggregate Reviews
 
+**[QUICK MODE: Skip aggregation. Read `${WORK_DIR}/reviews/claude-general.md` directly. Proceed to Step 5.5.]**
+
 Read ALL review files from `${WORK_DIR}/reviews/` directory and combine findings.
 
 **Possible reviewers (depending on selection):**
@@ -284,7 +304,24 @@ Output verified findings to `${WORK_DIR}/verified-findings.md`
 
 ### 6. Synthesize Actionable Items
 
-Present combined review to user:
+**QUICK MODE uses a lighter template:**
+
+```markdown
+# Quick Review: PR #{PR_NUM} — {PR_TITLE}
+
+## Findings (Verified)
+- [ ] **Critical** file:line - issue - fix (92%) ✓
+- [ ] **High** file:line - issue - fix (88%) ✓
+
+### Suggestions
+- partial/low-confidence items
+
+## Recommendation: APPROVE / REQUEST_CHANGES
+```
+
+No requirements table, no reviewer attribution, no review sources section. Proceed to Step 7.
+
+**FULL MODE template:**
 
 ```markdown
 # PR Review: {PR_TITLE} (#{PR_NUM})
@@ -444,3 +481,22 @@ Do nothing further. The review summary stands as-is.
 3. Detect all available reviewers
 4. User selects reviewers via paginated UI
 5. Full review workflow with selected reviewers
+
+**User:** "Quick review PR 456"
+1. "quick" detected → QUICK MODE
+2. Detect PR 456, gather context via script
+3. Skip reviewer selection
+4. Run code-reviewer only (single agent)
+5. Skip aggregation, verify findings
+6. Present lighter summary template
+7. Offer to address findings
+
+**User:** "Quick check this branch"
+1. "quick" detected → QUICK MODE
+2. Get PR from current branch, gather context
+3. Single code-reviewer pass
+4. Lighter output
+
+**User:** "Quick review PR 456 with all reviewers"
+1. "all" overrides "quick" → FULL MODE
+2. Full pipeline with all reviewers
