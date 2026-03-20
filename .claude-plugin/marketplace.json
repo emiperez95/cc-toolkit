@@ -57,6 +57,11 @@
       "name": "memory-compact",
       "source": "./commands/memory-compact",
       "description": "Command: Compact and reorganize Claude Code auto-memory files"
+    },
+    {
+      "name": "pr-status",
+      "source": "./commands/pr-status",
+      "description": "Command: Get all open PRs with CI state, reviews, comments, and freshness"
     }
   ]
 }

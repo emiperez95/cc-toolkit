@@ -1,0 +1,11 @@
+{
+  "name": "pr-status",
+  "version": "1.0.0",
+  "description": "Get all my open PRs with CI state, reviews, comments, and freshness",
+  "author": {
+    "name": "Emiliano Perez"
+  },
+  "repository": "https://github.com/emiperez95/cc-toolkit",
+  "license": "MIT",
+  "keywords": ["pr", "pull-request", "github", "status", "ci", "review"]
+}
