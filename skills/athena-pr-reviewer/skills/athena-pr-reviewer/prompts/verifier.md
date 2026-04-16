@@ -40,6 +40,13 @@ One verdict per finding:
 
 5. **Stay Focused**: You are NOT looking for new issues. Only validate existing claims.
 
+6. **Grounding Rule (requirements-checker findings)**: Findings from requirements-checker MUST cite a concrete `file:line` from the diff, or cite `<ticket-id>:AC-N` for a Missing AC. Reject any requirements-checker finding that:
+   - Has no file:line citation at all
+   - Cites a file that isn't in the diff (unless it's a `<ticket-id>:AC-N` reference for a Missing AC)
+   - Is a vague coverage complaint ("PR doesn't fully address AC") without pointing at specific code or a specific unmet criterion
+
+   This rule is stricter than the default ±5 line tolerance because requirements-checker findings are judgment-heavy and hallucinate more easily than code-level findings.
+
 ## Examples
 
 **VERIFIED:**

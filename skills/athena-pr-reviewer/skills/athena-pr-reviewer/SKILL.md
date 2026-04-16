@@ -91,8 +91,10 @@ Before running reviews, detect available reviewer agents and let the user select
 #### 3.1 Detect Available Reviewers
 
 **Built-in reviewers (always available):**
-- 6 Claude specialists: comment-analyzer, test-analyzer, error-hunter, type-reviewer, code-reviewer, simplifier
+- 7 Claude specialists: comment-analyzer, test-analyzer, error-hunter, type-reviewer, code-reviewer, simplifier, requirements-checker
 - External LLMs: Gemini, Codex (auto-detected by run-reviews.sh)
+
+**Note on requirements-checker:** This specialist self-gates on AC quality. If `context.md` has no structured acceptance criteria (or only vague freeform prose), it emits a SKIPPED result and produces no findings. Include it in the selection regardless — the gate runs inside the agent.
 
 **Dynamic reviewers:**
 Check available `subagent_type` values in your context for additional reviewers:
@@ -112,9 +114,10 @@ Show all detected reviewers and ask for confirmation:
 ```
 I'll run the review with these agents:
 
-**Claude specialists (6):** (built-in, always available)
+**Claude specialists (7):** (built-in, always available)
 - comment-analyzer, test-analyzer, error-hunter
 - type-reviewer, code-reviewer, simplifier
+- requirements-checker
 
 **External LLMs (2):** (run outside Claude via CLI)
 - Gemini, Codex
@@ -192,6 +195,7 @@ For each selected built-in specialist, spawn a Task agent:
 | type-reviewer | `prompts/type-reviewer.md` | `claude-types.md` |
 | code-reviewer | `prompts/code-reviewer.md` | `claude-general.md` |
 | simplifier | `prompts/simplifier.md` | `claude-simplify.md` |
+| requirements-checker | `prompts/requirements-checker.md` | `claude-requirements.md` |
 
 ```
 Task: general-purpose
@@ -265,8 +269,10 @@ Read ALL review files from `${WORK_DIR}/reviews/` directory and combine findings
 
 **Possible reviewers (depending on selection):**
 - External: gemini.md, codex.md
-- Built-in: claude-comments.md, claude-tests.md, claude-errors.md, claude-types.md, claude-general.md, claude-simplify.md
+- Built-in: claude-comments.md, claude-tests.md, claude-errors.md, claude-types.md, claude-general.md, claude-simplify.md, claude-requirements.md
 - Dynamic: {agent-name}.md (any additional detected agents)
+
+**Requirements Status source:** If `claude-requirements.md` exists and is not SKIPPED, its AC Coverage table is the authoritative source for the Requirements Status section of the final report. Copy the table verbatim (no synthesis). If it's SKIPPED or missing, fall back to synthesizing from the ticket and other specialists' findings as before.
 
 **Confidence Filtering:**
 - Drop findings with confidence < 80
@@ -327,6 +333,7 @@ No requirements table, no reviewer attribution, no review sources section. Proce
 # PR Review: {PR_TITLE} (#{PR_NUM})
 
 ## Requirements Status
+<!-- Sourced from claude-requirements.md AC Coverage table when available. Otherwise synthesized. -->
 | Requirement | Status | Notes |
 |-------------|--------|-------|
 
