@@ -101,9 +101,9 @@ Check available `subagent_type` values in your context for additional reviewers:
 1. Pattern match - Find agents where name or description contains "reviewer" or "review"
 2. Exclude: `athena-pr-reviewer` (this skill), data-gathering agents (hermes-pr-courier, heimdall-pr-guardian, etc.)
 
-#### 3.2 Check for "all" Flag
+#### 3.2 Check for "all" / "full" Flag
 
-If the user's original message includes "all" or "all reviewers" or "don't ask" or "no questions" (case-insensitive), **skip the selection prompt entirely** and proceed to step 4 with all detected reviewers. Do NOT call `AskUserQuestion`.
+If the user's original message includes "all", "full", "all reviewers", "don't ask", or "no questions" (case-insensitive), **skip the selection prompt entirely** and proceed to step 4 with all detected reviewers. Do NOT call `AskUserQuestion`.
 
 Otherwise, proceed to 3.3.
 
@@ -467,10 +467,10 @@ Do nothing further. The review summary stands as-is.
 7. Present verified actionable summary
 8. Offer: walk through, auto-fix, or done
 
-**User:** "Review PR 456 with all reviewers"
+**User:** "Review PR 456 with all reviewers" (or "full review PR 456")
 1. Detect PR 456, find linked Jira ticket
 2. Gather context via script
-3. "all" keyword detected → skip reviewer selection, use all
+3. "all" / "full" keyword detected → skip reviewer selection, use all
 4. Run all reviews in parallel
 5. Full review workflow
 
